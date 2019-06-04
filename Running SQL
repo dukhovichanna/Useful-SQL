@@ -1,0 +1,24 @@
+---Veweving running SQL
+
+select /*+ RULE */ s.sid,
+s.status,
+s.module,
+s.username,
+s.schemaname,
+s.client_info,
+s.last_call_et,
+a.sql_text,
+--a.sql_fulltext,
+s.process,
+s.osuser,
+s.machine,
+p.program,
+s.type
+from v$session s,
+v$sqlarea a,
+v$process p
+where s.sql_hash_value=a.hash_value
+and s.sql_address=a.address
+and s.paddr=p.addr
+and s.schemaname='SYSADM'
+and s.status='ACTIVE';
