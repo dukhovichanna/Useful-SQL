@@ -1,0 +1,5 @@
+---PID and SPID
+
+SELECT a.sid, b.spid, a.username, a.osuser
+  FROM v$session a, v$process b
+ WHERE a.paddr = b.addr(+);

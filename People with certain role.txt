@@ -1,0 +1,3 @@
+select a.roleuser, b.oprdefndesc, b.emailid from psroleuser a
+join psoprdefn b on a.roleuser = b.oprid
+where rolename = 'CIBER_NSC_REQUEST';

@@ -1,0 +1,55 @@
+--- PeopleTools Index Informtaion
+
+select
+    R.RECNAME,
+    R.RECDESCR,
+    R.INDEXCOUNT,
+    R.SQLTABLENAME,
+    'PS' || I.INDEXID || I.RECNAME as PS_INDEXNAME,
+    I.INDEXID,
+    (case
+        when I.INDEXTYPE = 1 then 'Key'
+        when I.INDEXTYPE = 2 then 'User'
+        when I.INDEXTYPE = 3 then 'Alt'
+        when I.INDEXTYPE = 4 then 'User'
+        else 'Unknown'
+     end) as PS_INDEXTYPE   
+from
+    PSRECDEFN R inner join PSINDEXDEFN I
+    on R.RECNAME = I.RECNAME
+where
+    R.RECTYPE = 0
+    and R.RECNAME = '<record_name>'
+order by
+    R.RECNAME, PS_INDEXTYPE, I.INDEXID
+;
+
+--- Database Index Information
+
+select
+    R.RECNAME,
+    R.RECDESCR,
+    R.SQLTABLENAME,
+    DI.OWNER,
+    DI.TABLE_NAME as DB_TABLENAME,
+    DI.INDEX_NAME as DB_INDEXNAME,
+    DI.INDEX_TYPE as DB_INDEXTYPE,
+    DI.UNIQUENESS,
+    DI.STATUS,
+    DI.NUM_ROWS,
+    DI.LAST_ANALYZED
+from
+    PSRECDEFN R inner join DBA_INDEXES DI
+    on R.RECNAME = replace(DI.TABLE_NAME, 'PS_', '') 
+where
+    R.RECTYPE = 0
+    and R.RECNAME = '<record_name>'
+order by
+    DI.TABLE_NAME, DI.UNIQUENESS desc, DI.INDEX_NAME
+;
+
+--- another quuery
+
+ select index_name, column_name
+ from user_ind_columns
+ where table_name = '<record_name>';

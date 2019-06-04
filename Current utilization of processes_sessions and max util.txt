@@ -1,0 +1,4 @@
+---How to see current utilization of processes/sessions and max utilization
+
+
+select resource_name, current_utilization, max_utilization from v$resource_limit where resource_name in ('processes','sessions');

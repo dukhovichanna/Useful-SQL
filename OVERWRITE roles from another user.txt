@@ -1,0 +1,29 @@
+--COPY MISSING ROLE FROM USER BY OVERWRITE
+----@C:\temp\SQLLogs\name...sql;
+
+set echo on;
+column spoolname new_value spoolname
+SELECT 'C:\temp\SQLLogs\'||INSTANCE_NAME ||'_overwrite_roles'
+	||(select '_'||to_char(sysdate,'YYYY_MM_DD_HH24_MI_SS') from dual)||'.log' spoolname
+FROM v$INSTANCE;
+spool &spoolname;
+
+DEFINE SRC=&SOURCE_EMPLID
+DEFINE TGT=&TARGET_EMPLID
+
+select * from psroleuser where roleuser = '&TGT';
+select * from psroleuser where roleuser = '&SRC';
+
+
+
+delete from psroleuser where roleuser = '&TGT';
+
+insert into psroleuser (select distinct '&TGT', rolename, 'N' from psroleuser where roleuser = '&SRC');
+
+select * from psroleuser where roleuser = '&TGT';
+select * from psroleuser where roleuser = '&SRC';
+
+COMMIT;
+
+set echo off;
+spool off;

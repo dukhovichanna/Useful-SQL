@@ -1,0 +1,9 @@
+---RESIZE A TEMPFILE
+
+alter database tempfile '/oracle/data/ENVNAME/pstemp01.dbf'
+resize 12500M;
+
+
+-- Addming autoextend and resizing a datafile
+
+ALTER DATABASE DATAFILE '/oracle/data/ENVNAME/eoapp.dbf' AUTOEXTEND ON NEXT 128K MAXSIZE 32767M

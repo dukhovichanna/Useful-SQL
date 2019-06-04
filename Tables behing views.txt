@@ -1,0 +1,5 @@
+---how to find objects behind views 
+
+select * from dba_dependencies
+where owner = 'SYSADM' and type = 'VIEW'
+and name = 'PS_ACAD_PLAN_DP_VW'; -- name is the name of the view that you're interested in

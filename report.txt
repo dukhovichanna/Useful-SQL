@@ -1,0 +1,95 @@
+SELECT oprid, COUNT(DISTINCT(logipaddress)) AS NUM_IP FROM psaccesslog
+WHERE logindttm >= (SYSDATE - 30)
+GROUP BY oprid
+HAVING COUNT(DISTINCT(logipaddress)) >= 5
+ORDER BY COUNT(DISTINCT(logipaddress)) DESC;
+
+SELECT logipaddress, COUNT(DISTINCT(oprid)) AS NUM_ID FROM psaccesslog
+WHERE logindttm >= (SYSDATE - 30)
+GROUP BY logipaddress
+HAVING COUNT(DISTINCT(oprid)) >= 5
+ORDER BY COUNT(DISTINCT(oprid)) DESC;
+
+
+*** Correct IDs with details through Subquery ***
+
+SELECT DISTINCT A.OPRID, A.LOGIPADDRESS 
+  FROM PSACCESSLOG A 
+  WHERE ( A.LOGINDTTM >= SYSDATE - 30 
+     AND A.OPRID IN (SELECT B.OPRID 
+  FROM PSACCESSLOG B 
+  WHERE B.OPRID = A.OPRID
+  AND B.LOGINDTTM >= SYSDATE - 30
+  GROUP BY b.oprid
+  HAVING ( COUNT(DISTINCT( B.LOGIPADDRESS)) >= 5)) );
+
+*** Correct IPs with details though subquery ***
+
+SELECT DISTINCT A.OPRID, A.LOGIPADDRESS
+  FROM PSACCESSLOG A 
+  WHERE ( A.LOGINDTTM >= SYSDATE - 30 
+     AND a.logipaddress IN (SELECT b.logipaddress 
+  FROM PSACCESSLOG B 
+  WHERE A.LOGIPADDRESS = b.logipaddress
+  AND  B.LOGINDTTM >= (SYSDATE - 30) 
+  GROUP BY b.logipaddress 
+  HAVING ( COUNT(DISTINCT( B.OPRID)) >= 5) ))
+  ORDER BY LOGIPADDRESS;
+
+*** The whole working union ***
+
+SELECT DISTINCT A.OPRID, A.LOGIPADDRESS, a.LOGINDTTM
+  FROM PSACCESSLOG A 
+  WHERE ( A.LOGINDTTM >= SYSDATE - 30 
+     AND A.OPRID IN (SELECT B.OPRID 
+  FROM PSACCESSLOG B 
+  WHERE B.OPRID = A.OPRID
+  AND B.LOGINDTTM >= (SYSDATE - 30) 
+  GROUP BY b.oprid
+  HAVING ( COUNT(DISTINCT( B.LOGIPADDRESS)) >= 5)) )
+  UNION
+ SELECT DISTINCT A.OPRID, A.LOGIPADDRESS, a.LOGINDTTM
+  FROM PSACCESSLOG A 
+  WHERE ( A.LOGINDTTM >= SYSDATE - 30 
+     AND a.logipaddress IN (SELECT b.logipaddress 
+  FROM PSACCESSLOG B 
+  WHERE A.LOGIPADDRESS = b.logipaddress
+  AND  B.LOGINDTTM >= (SYSDATE - 30) 
+  GROUP BY b.logipaddress 
+  HAVING ( COUNT(DISTINCT( B.OPRID)) >= 5) ))
+  ORDER BY LOGIPADDRESS;
+
+-- QUERY THAT LOOKS FOR DIFFERENCE BETWEEN RUNTIME AND BEGIND TIME OF THE PROCESS
+select prcsinstance, prcstype, prcsname, oprid, rundttm,  begindttm, enddttm, extract (minute from(begindttm - rundttm)) difference_in_minutes FROM SYSADM.psprcsrqst
+WHERE rundttm LIKE '%31-JAN-17 %'
+and extract (minute from(begindttm - rundttm)) > 4
+and prcsname <> 'UM_AEMACQRY'
+and recurname = ' '
+and jobinstance = 0 --to include only jobs with 1 instance
+ORDER BY rqstdttm;
+
+--lists custom tables updated on or after the date
+SELECT * FROM sysadm.PSRECDEFN
+WHERE lastupdoprid <> 'PPLSOFT'
+AND lastupddttm >= '01-JAN-2017 12:00:00AM';
+
+
+--looking for table name when I know approximate name
+SELECT * FROM SYSADM.psrecdefn
+WHERE recname like '%RPTDEFN%';
+
+--looking at the rec description , when don't know table name
+
+SELECT * FROM SYSADM.psrecdefn
+WHERE RECDESCR LIKE 'Sync%';
+
+-- looking for children records of the parent table
+
+SELECT recname, parentrecname FROM sysadm.psrecdefn
+WHERE parentrecname = 'PSOPRDEFN';
+
+--permission lists assigned to the user via roles
+SELECT DISTINCT a.classid from sysadm.psroleclass a, sysadm.psroleuser b, sysadm.psoprdefn c
+WHERE (a.rolename = b.rolename and c.oprid = b.roleuser and c.oprid = 'USERNAME');
+
+
